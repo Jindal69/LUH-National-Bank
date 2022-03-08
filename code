@@ -1,0 +1,1420 @@
+print """
+#    #  # #  #      #   # #### ##### # #### #   # #### #         #### #### #   # #  #
+#    #  # #  #      ##  # #  #   #   # #  # ##  # #  # #         #  # #  # ##  # # #
+#    #  # ####      # # # ####   #   # #  # # # # #### #         ###  #### # # # ##
+#    #  # #  #      #  ## #  #   #   # #  # #  ## #  # #         #  # #  # #  ## # #
+#### #### #  #      #   # #  #   #   # #### #   # #  # ####      #### #  # #   # #  #
+
+                #######   COMPLICATIONS WITH SIMPLICITY   #######
+"""
+"""THIS IS A PROTOTYPE PROJECT DEVELOPED FOR BRINGING EASINESS IN NET BAKING, A PYTHON
+BASED PROGRAM. TO BE RUNNED IT NEEDS THREE EXTERNAL LIBRARIES viz. REPORT LAB,
+VALIDATE_EMAIL, AND pyDNS. IT HAS FAST ACCESS AND HAS ALL THE SECURITY ESSENTIALS FOR
+YOUR BANK ACCOUNT. ALL THE THINGS ARE BASED ON EMAIL VERIFICATION. ALSO IT CAN SEND
+TRANSACTION SUMMARY AND STATEMENT OF YOUR BANK ACCOUNT IN PDF FORMAT TO YOUR REGISTERED
+EMAILID. EVEN IT USES BINARY FILES TO STORE DATA WHICH IS A VERY COMPLEX FOR NORMALS AND
+BEGINNERS TO READ."""
+
+
+#############################     imports     ################################
+import smtplib,socket                                                  
+from textwrap import wrap
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
+from email.MIMEBase import MIMEBase
+from email import encoders
+import pickle,random,time,os,datetime,string
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+from validate_email import validate_email
+currentdate=str(datetime.date.today())
+currenttime=str(datetime.datetime.now())[11:19]
+user_type=""
+atTEMPt_login=0
+import pickle,random,string
+signin_atTEMPts=0
+print"______________________________________________________________________________________"
+print"======================================================================================"
+print"                      WELCOME TO LUH National BANK NET BANKING                        "
+print"======================================================================================"
+
+#############################      start     ##################################
+
+def welcome():                                  # FIRST WELCOME WINDOW
+    print
+    a='ENTER 1 FOR SIGNUP'
+    b='ENTER 2 FOR LOGIN'
+    print a,' '*(84-len(a)-len(b)),b
+    print
+    ch=raw_input("ENTER YOUR CHOICE HERE")
+    if int(ch)==1:
+        signup()
+    elif int(ch)==2:
+        login()
+    else:
+        print"WRONG INPUT! ! ! !    PLEASE ENTER AGAIN"
+        print
+        welcome()
+def signup():       # SIGNUP WINDOW
+    global user_type
+    print
+    a="ENTER 1 FOR RETAIL USER"
+    b="ENTER 2 FOR CORPORATE USER"
+    print 
+    print a,' '*(84-len(a)-len(b)),b
+    ch=raw_input("ENTER YOUR CHOICE HERE")
+    print
+    if (ch)=="1":
+        user_type="r"
+        new_user()
+    elif (ch)=="2":
+        user_type="c"
+        new_user()
+    else:
+        print"WRONG INPUT! ! ! !   ENTER AGAIN"
+        print
+        signup()
+
+#################################     constraint checker for signup     #################################
+def name_i():
+    name=raw_input("ENTER YOUR NAME:")
+    while (name.isalpha())==False:
+        name=raw_input("ENTER YOUR VALID NAME:")
+    return name
+def accountno_i():
+    accountno=raw_input("ENTER ACCOUNT NUMBER:")
+    while (accountno.isdigit())==False or len(accountno)!=14:
+        accountno=raw_input("ENTER VALID ACCOUNT NUMBER:")
+    return accountno
+def phoneno_i():
+    phoneno=raw_input("ENTER YOUR PHONE NUMBER:")
+    while (phoneno.isdigit())==False or len(phoneno)!=10:
+        phoneno=raw_input("ENTER YOUR VALID PHONE NUMBER:")
+    return phoneno
+def emailid_i():
+    emailid=raw_input("ENTER YOUR EMAIL ID:")
+    is_valid=validate_email(emailid,verify=True)
+    while '@' not in emailid or ".com" not in emailid or is_valid!=True:
+        emailid=raw_input("ENTER YOUR VALID EMAILID:")
+        is_valid=validate_email(emailid,verify=True)
+    return emailid
+def address_i():
+    address=raw_input("ENTER YOUR ADDRESS INCLUDING ALL DETAILS :")
+    while (address.isalpha())==True or (address.isdigit())==True:
+        address=raw_input("ENTER YOUR VALID ADDRESS INCLUDING ALL DETAILS :")
+    return address
+def panno_i():
+    panno=raw_input("ENTER YOUR PAN NUMBER:")
+    while (panno.isalpha())==True or (panno.isdigit())==True or len(panno)!=10:
+        panno=raw_input("ENTER YOUR VALID PAN NUMBER:")
+    return panno
+def aadharno_i():
+    aadharno=raw_input("ENTER YOUR AADHAR NUMBER:")
+    while (aadharno.isdigit())==False or len(aadharno)!=12 or (aadharno.isalnum())==False:
+        aadharno=raw_input("ENTER YOUR VALID AADHAR NUMBER:")
+    return aadharno
+
+############################################       generators           ##################################
+
+
+def psswd_ge(n):
+    a=string.printable
+    code=""
+    for i in range(n):
+        code+=str(a[random.randint(0,84)])
+    return code
+def userid_ge():
+    userid_file=open("d:\userid.dat","ab+")
+    c=1
+    while c>0:
+        code=random.randint(100000,999999)
+        try:
+            while True:
+                present_id=pickle.load(userid_file)
+                if present_id!=code:
+                    continue
+                else:
+                    break
+        except EOFError:
+            pickle.dump(str(code),userid_file)
+            userid_file.close()
+            c-=5
+    return code
+def corpid_ge():
+    corpid_file=open("d:\corpid.dat","ab+")
+    c=1
+    while c>0:
+        code=random.randint(100000,999999)
+        try:
+            while True:
+                present_id=pickle.load(corpid_file)
+                if present_id!=code:
+                    continue
+                else:
+                    break
+        except EOFError:
+            pickle.dump(str(code),corpid_file)
+            corpid_file.close()
+            c-=5
+    return code
+
+
+###########################################          registration        #######################################
+
+
+class user:
+    def __init__(self,name="",accountno="",phoneno=0,emailid="",address="",panno="",aadharno=0,userid="",corp_id="",log_psswd="",trans_psswd="",balance=0):
+        self.name=name
+        self.accountno=accountno
+        self.phoneno=phoneno
+        self.emailid=emailid
+        self.panno=panno
+        self.aadharno=aadharno
+        self.address=address
+        self.userid=userid
+        self.corp_id=corp_id
+        self.signpsswd=log_psswd
+        self.transpsswd=trans_psswd
+        self.balance=balance
+    def get_name(self):
+        return self.name
+    def get_accountno(self):
+        return self.accountno
+    def get_phoneno(self):
+        return self.phoneno
+    def get_emailid(self):
+        return self.emailid
+    def get_address(self):
+        return self.address
+    def get_panno(self):
+        return self.panno
+    def get_aadharno(self):
+        return self.aadharno
+    def get_userid(self):
+        return self.userid
+    def get_corpid(self):
+        return self.corp_id
+    def get_logpsswd(self):
+        return self.signpsswd
+    def get_transpsswd(self):
+        return self.transpsswd
+    def get_balance(self):
+        return self.balance
+def new_user():             # NEW USER CREATION
+    filer=open("D:\ACCOUNTS.dat","ab")
+    userid=userid_ge()
+    if user_type=="r":
+        corpid_i=""
+    else:
+        corpid_i=corpid_ge()
+    logpsswd_i=psswd_ge(8)
+    transpsswd_i=psswd_ge(10)
+    q=name_i()
+    w=accountno_i()
+    e=phoneno_i()
+    r=emailid_i()
+    t=address_i()
+    y=panno_i()
+    u=aadharno_i()
+    i=userid
+    o=corpid_i
+    p=logpsswd_i
+    l=transpsswd_i
+    new=user(str(q),str(w),str(e),str(r),str(t),str(y),str(u),str(i),str(o),str(p),str(l),int(raw_input("ENTER INITIAL BALANCE")))
+    pickle.dump(new,filer)
+    if user_type=="r":
+        print
+        msg="AS PER YOUR REQUEST FOR NET BANKING \n\nYOUR USER ID IS:\t\t"+str(userid)+"\n\nTEMPORARY LOGIN PASSWORD IS:\t\t"+str(logpsswd_i)+"\n\nTEMPORARY TRANSACTION PASSWORD IS:\t\t"+str(transpsswd_i)
+    else:
+        print
+        msg="AS PER YOUR REQUEST FOR NET BANKING \n\nYOUR USER ID IS:\t\t"+str(userid)+"\n\nCORPORATE ID IS:\t\t"+str(corpid_i)+"\n\nTEMPORARY LOGIN PASSWORD IS:\t\t"+str(logpsswd_i)+"\n\nTEMPORARY TRANSACTION PASSWORD:\t\t"+str(transpsswd_i)
+    print "PLEASE WAIT, YOUR REQUEST IS UNDER PROCESS."
+    email(str(r),"REQUEST for USERID and TEMPORARY PASSWORDS",msg)
+    print "REGISTRATION SUCCESSFUL, NOW YOU CAN LOGIN USING YOUR USERID AND PASSWORD"
+    filer.close()
+    print "REDIRECTING TO HOME PAGE"
+    welcome()
+
+#######################################     login     #######################################
+    
+def login():           # asking for retail or corporate information
+    global user_type,signin_atTEMPts
+    signin_atTEMPts=0
+    print
+    a="ENTER 1 FOR RETAIL USER"
+    b="ENTER 2 FOR CORPORATE USER"
+    print 
+    print a,' '*(84-len(a)-len(b)),b
+    print
+    ch=raw_input("ENTER YOUR CHOICE")
+    if int(ch)==1:
+        user_type+="r"
+        get_retail_info()
+    elif int(ch)==2:
+        user_type+="c"
+        get_corporate_info()    
+    else:
+        print"WRONG INPUT!!!!    ENTER AGAIN"
+        print
+        login()
+def get_retail_info():              # retrieving retail user information
+    global userid_g,log_psswd
+    print
+    log_userid=raw_input("ENTER YOUR USER ID")
+    if len(log_userid)==6:
+        if log_userid.isdigit():
+            try:
+                filer=open("d:\userid.dat","rb")
+            except:
+                print "NO ACCOUNTS REGISTERED YET. PLEASE SIGNUP FIRST"
+                signup()
+            try:
+                c=0
+                while c<1:
+                    usrd=pickle.load(filer)
+                    if usrd==log_userid:
+                        userid_g=log_userid
+                        psswdcheck()
+                        filer.close()
+                        c+=3
+                    else:
+                        continue
+            except EOFError:
+                print "ENTER VALID USERID."
+                print
+                get_retail_info()
+        else:
+            print "ENTER VALID USERID."
+            print
+            get_retail_info()
+    else:
+        print "ENTER VALID USERID."
+        print
+        get_retail_info()        
+def get_corporate_info():                   #      retieving corporate user information
+    global userid_g,log_psswd
+    print
+    log_userid=raw_input("ENTER YOUR USER ID")
+    if len(log_userid)==6:
+        if log_userid.isdigit():
+            try:
+                filer=open("d:\userid.dat","rb")
+            except:
+                print "NO ACCOUNTS REGISTERED YET. PLEASE SIGNUP FIRST"
+                signup()
+            try:
+                c=0
+                while c<1:
+                    usrd=pickle.load(filer)
+                    if usrd==log_userid:
+                        filer.close()
+                        userid_g=log_userid
+                        corpcheck()
+                        c+=8
+                    else:
+                        continue
+            except EOFError:
+                print "ENTER VALID USERID."
+                print
+                get_retail_info()
+        else:
+            print "ENTER VALID USERID."
+            print
+            get_retail_info()
+    else:
+        print "ENTER VALID USERID."
+        print
+        get_retail_info()
+    psswdcheck()
+def psswdcheck():                       # checking for password
+    global signin_atTEMPts
+    filer=open("d:\ACCOUNTS.dat","rb")
+    if signin_atTEMPts<3:
+        log_psswd=raw_input("ENTER YOUR LOG IN PASSWORD OR ENTER F IF YOU FORGET YOUR PASSWORD")
+        if (log_psswd.lower())=='f':
+            filer.close()
+            log_forget()
+        else:
+            psswd=searchrecord("login")
+            if log_psswd==psswd:
+                otp=random.randint(100000,999999)
+                print "SENDING OTP, PLEASE WAIT IT CAN TAKE SOME SECONDS DEPENDING ON YOUR INTERNET CONNECTION"
+                email(searchrecord('email'),"REQUEST FOR LOGIN OTP","As per log in request OTP is:\t\t"+str(otp))
+                otp_i=raw_input("ENTER THE OTP HERE:")
+                if otp_i==str(otp):
+                    print"YOU HAVE SUCCESSFULLY LOGGED IN"
+                    filer.close()
+                    dashboard_welcome()
+                else:
+                    print "WRONG OTP"
+                    filer.close()
+                    ender()
+            else:
+                print
+                print"PASSWORD  MISMATCH ! ! ! ! ! ! "
+                signin_atTEMPts+=1
+                print
+                print"YOU HAVE ONLY",3-signin_atTEMPts,"ATTEMPTS LEFT !!!!"
+                filer.close()
+                psswdcheck()
+    else:
+        print
+        print "ALL ATTEMPTS EXPIRED PLEASE CONTACT TO NEAREST BRANCH"
+        print "YOU CAN ALSO CONTACT OUR CUSTOMER CARE EXECUTIVE FOR SOME ASSISTANCE AT luhnb@protonmail.com"
+        filer.close()
+def ender():                # wrong otp handler
+    print "SORRY FOR SECURITY REASONS YOU WILL HAVE TO LOGIN AGAIN AND FOLLOW THE SAME PROCESS AGAIN"
+    login()
+def corpcheck():            # corporate id checker
+    print
+    log_corpid=raw_input("ENTER YOUR CORPORATE ID")
+    if len(log_corpid)==6:
+        if log_corpid.isdigit():
+            filer_corp=open("d:\corpid.dat","rb")
+            try:
+                c=0
+                while c<1:
+                    corpd=pickle.load(filer_corp)
+                    if corpd==log_corpid:
+                        filer_corp.close()
+                        c+=3
+                    else:
+                        continue
+            except EOFError:
+                print
+                print "ENTER VALID CORPORATE ID."
+                corpcheck()
+        else:
+            print
+            print "ENTER VALID CORPORATE ID."
+            corpcheck()
+    else:
+        print
+        print "ENTER VALID CORPORATE ID."
+        corpcheck()
+def searchrecord(m):            # record fetcher and returner
+    f=open("d:\ACCOUNTS.dat","rb")
+    k=user()
+    c=0
+    try:
+        while c<7:
+            k=pickle.load(f)
+            x=str(k.get_userid())
+            y=str(userid_g)
+            if x==y:
+                if m in "name":
+                    c+=10
+                    f.close()
+                    return  k.get_name()
+                elif m in "account number":
+                    c+=10
+                    f.close()
+                    return k.get_accountno()
+                elif m in "phone number":
+                    c+=10
+                    f.close()
+                    return k.get_phoneno()
+                elif m in "emailid":
+                    c+=10
+                    f.close()
+                    return k.get_emailid()
+                elif m in "address":
+                    c+=10
+                    f.close()
+                    return k.get_address()
+                elif m in "aadhar number":
+                    c+=10
+                    f.close()
+                    return k.get_aadharno()
+                elif m in "pan number":
+                    c+=10
+                    f.close()
+                    return k.get_panno()
+                elif m in "login password":
+                    c+=10
+                    f.close()
+                    return k.get_logpsswd()
+                elif m in "transaction password":
+                    c+=10
+                    f.close()
+                    return k.get_transpsswd()
+                elif m in "balance":
+                    c+=10
+                    f.close()
+                    return k.get_balance()
+            else:
+                continue
+    except EOFError:
+        f.close()
+
+##################################     functions useful in services #####################################
+def email(reciever_id,subject,message):
+    server=smtplib.SMTP("smtp.gmail.com",587)
+    server.ehlo()
+    server.starttls()
+    server.ehlo()
+    server.login('luhnationalbank@gmail.com','LUHnb@123')
+    msg=MIMEText(str(message))
+    msg['Subject']=subject
+    msg['From']='luhnationalbank@gmail.com'
+    msg['To']=str(reciever_id)
+    print
+    print '{:^110}'.format("------------------------------SENDING EMAIL------------------------------")
+    try:
+        server.sendmail('luhnationalbank@gmail.com',str(reciever_id),msg.as_string())
+        print
+        print "EMAIL SEND SUCCESSFULLY. PLEASE CHECK YOUR EMAIL FOR DETAILS"
+    except smtplib.SMTPConnectError:
+        print "EMAIL SENDING FAILED. PLEASE CHECK INTERNET CONNECTION OR EMAIL ADDRESS AND TRY AGAIN."
+        print "Thank you, for your interest in our LUH NATIONAL BANK"
+    except smtplib.SMTPException:
+        print "EMAIL SENDING FAILED DUE TO SOME TECHNICAL ERROR, PLEASE CHECK YOUR INERNET CONNECTION"
+        print "Thank you, for your interest in our LUH NATIONAL BANK"
+    except smtplib.SMTPServerDisconnected:
+        print "ERROR 404: SERVER NOT FOUND, PLEASE CHECK YOUR INTERNET CONNECTION"
+        print "Thank you, for your interest in our LUH NATIONAL BANK"
+    except smtplib.SMTPRecipientsRefused:
+        print "EMAIL ID PROVIDED IS WRONG PLEASE UPDATE YOUR EMAIL ID."
+        print "AND IF YOU ARE SURE THAT YOUR EMAIL ID PROVIDED IS CORRECT THEN YOU HAVE TO ALLOW MAILS FROM OUR SERVER IN YOUR SECURITY SETTING OF YOUR MAIL ACCOUNT"
+        print "Thank you, for your interest in our LUH NATIONAL BANK"
+    except smtplib.SMTPHeloError:
+        print "EMAIL SENDING FAILED DUE TO SOME TECHNICAL ERROR, PLEASE CHECK YOUR INTERNET CONNECTION"
+        print "Thank you, for your interest in our LUH NATIONAL BANK"
+    except socket.gaierror:
+        print "EMAIL SENDING FAILED DUE TO SOME TECHNICAL ERROR, PLEASE CHECK YOUR INTERNET CONNECTION"
+        print "Thank you, for your interest in our LUH NATIONAL BANK"
+    server.quit()
+def email_attachment(to,subject,textm,attachment):
+    fromaddr = "luhnationalbank@gmail.com"
+    toaddr =to 
+    msg = MIMEMultipart() 
+    msg['From'] = fromaddr
+    msg['To'] = toaddr
+    msg['Subject'] =subject 
+    body =textm
+    msg.attach(MIMEText(body, 'plain')) 
+    filename = attachment
+    attachment = open(attachment, "rb") 
+    part = MIMEBase('application', 'octet-stream')
+    part.set_payload((attachment).read())
+    encoders.encode_base64(part)
+    part.add_header('Content-Disposition', "attachment; filename= %s" % filename) 
+    msg.attach(part) 
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(fromaddr, "LUHnb@123")
+    text = msg.as_string()
+    server.sendmail(fromaddr, toaddr, text)
+    print "EMAIL SEND"    
+    server.quit()
+def PRINTER():
+    line='|'
+    for k in data[0]:
+        line+=str(k)
+        line+='|'
+    print "-"*len(line)
+    print line
+    print "-"*len(line)
+    for i in data[1:]:
+        print '|',
+        for j in range(len(i)):
+            print i[j],' '*(len(data[0][j])-len(i[j])-3),'|',
+        print
+    print "-"*len(line)
+
+
+###########################################    dashboard  ####################################
+def dashboard_welcome():
+    print
+    print "ACCOUNT NUMBER:",searchrecord("account")
+    print
+    print "NAME:",searchrecord("name")
+    print
+    print "BALANCE:",searchrecord("bal")
+    print
+    dashboard()
+def dashboard():
+    print "ENTER 1 FOR SETUP SECTION                            ENTER 2 FOR SERVICES SECTION"
+    print "ENTER 3 TO LOG OUT"
+    a=raw_input("ENTER YOUR CHOICE")
+    if a=='1':
+        setup()
+    elif a=='2':
+        services()
+    elif a=='3':
+        print "HOPE YOU ENJOYED LUH NATIONAL NET BANKING......."
+        os._exit(0)
+    else:
+        print "WRONG INPUT"
+        dashboard()
+
+############################################## service section ###########################################
+def services():
+    print """
+ENTER=====>>>>
+
+1. FOR YOUR STATEMENT                                           2. FOR YOUR TRANSACTION SUMMARY
+
+3. TO VIEW AND MANAGE BENEFICIARIES                             4. TO ISSUE A CHEQUE BOOK
+
+5. TO MAKE A TRANSACTION """
+    print
+    a=raw_input("ENTER YOUR CHOICE HERE,")
+    print
+    if a=='2':
+        transsumm()
+    elif a=='1':
+        statement()
+    elif a=='3':
+        print "BENEFICIARIES LINKED TO YOUR ACCOUNT ARE:"
+        beneficiaries_print()
+        beneficiaries()
+    elif a=='4':
+        print "YOUR CHEQUE BOOK IS ISSUED AND WILL REACH YOUR REGISTERED ADDRESS WITHIN 2 WORKING DAYS"
+        print
+        print "REDIRECTING TO DASHBOARD"
+        print
+        dashboard()
+    elif a=='5':
+        transaction()
+
+#transaction
+class transaction_record:
+    def __init__(self,transid='',userid='',beneid='',amount='',date='',time=''):
+        self.transid=transid
+        self.userid=userid
+        self.beneid=beneid
+        self.amount=amount
+        self.date=date
+        self.time=time
+    def get_transid(self):
+        return self.transid
+    def get_userid(self):
+        return self.userid
+    def get_beneid(self):
+        return self.beneid
+    def get_amount(self):
+        return self.amount
+    def get_date(self):
+        return self.date
+    def get_time(self):
+        return self.time
+def transsumm():
+    global data
+    data=[['TRANSACTION ID','   AMOUNT   ']]
+    initialdate=raw_input("ENTER STARTING DATE(FORMAT:YYYY-MM-DD):")
+    lastdates={'01':'31','02':'29','03':'31','04':'30','05':'31','06':'30','07':'31','08':'31','09':'30','10':'31','11':'30','12':'31'}
+    while len(initialdate)!=10 or int(initialdate[0:4])<2018 or initialdate[4]!='-' or int(initialdate[5:7])<0 or int(initialdate[5:7])>12 or initialdate[7]!='-' or int(initialdate[8:])<0 or int(initialdate[8:])>int(lastdates.get(str(initialdate[5:7]))):
+        initialdate=raw_input("ENTER VALID STARTING DATE(FORMAT:YYYY-MM-DD):")
+    finaldate=raw_input("ENTER ENDING DATE(FORMAT:YYYY-MM-DD):")
+    while len(finaldate)!=10 or int(finaldate[0:4])<2018 or finaldate[4]!='-' or int(finaldate[5:7])<0 or int(finaldate[5:7])>12 or finaldate[7]!='-' or int(finaldate[8:])<0 or int(finaldate[8:])>int(lastdates.get(str(finaldate[5:7]))) or finaldate<initialdate:
+        finaldate=raw_input("ENTER VALID ENDING DATE(FORMAT:YYYY-MM-DD):")
+    try:
+        filer=open("d:\Transactions","rb")
+    except:
+        print "NO TRANSACTION YET."
+        print "REDIRECTING TO DASHBOARD"
+        print
+        dashboard()
+    try:
+        while True:
+            transaction=transaction_record()
+            transaction=pickle.load(filer)
+            if str(transaction.get_userid())==str(userid_g):
+                if str(transaction.get_date())>str(initialdate) and str(transaction.get_date())<str(finaldate):
+                    data_sub=[str(transaction.get_transid()),str(transaction.get_amount())]
+                    data.append(data_sub)
+                else:
+                    continue
+            else:
+                continue
+    except EOFError:
+        pass
+    filer.close()
+    PRINTER()
+    transsumm_choices()
+def transsumm_choices():
+    choice=raw_input("""
+ENTER 1 FOR DETAIL OF TRANSACTION           ENTER 2 FOR PDF FORMAT STATEMENT OF THIS TRANSACTION
+ENNTER 3 TO GO BACK TO DASHBOARD""")
+    if choice=='1':
+        tid=raw_input("ENTER TRANSACTION ID FOR MORE DETAILS")
+        filer=open("d:\Transactions","rb")
+        try:
+            while True:
+                transaction=transaction_record()
+                transaction=pickle.load(filer)
+                x=transaction.get_transid()
+                if str(x)==str(tid):
+                    if str(transaction.get_userid())==str(userid_g):
+                        print "TRANSACTION ID:",transaction.get_transid()
+                        print "BENEFICIARY ID:",transaction.get_beneid()
+                        try:
+                            filer2=open("d:\Beneficiaries.dat","rb")
+                            try:
+                                while True:
+                                    bene=beneficiary_class()
+                                    bene=pickle.load(filer2)
+                                    if str(bene.get_beneid())==str(transaction.get_beneid()):
+                                        print "BENEFICIARY NAME:",bene.get_benename()
+                                        print "BENEFICIARY ACCOUNT NO.:",bene.get_accno()
+                                        print "BENEFICIARY IFSC CODE NO.:",bene.get_ifsc()
+                                    else:
+                                        continue
+                            except EOFError:
+                                pass
+                        except:
+                            pass
+                        filer2.close()
+                        print "AMOUNT TRANSACTED: INR",int(transaction.get_amount())*-1
+                        print "DATE:",transaction.get_date()
+                        print "TIME:",transaction.get_time()
+                        break
+                    else:
+                        print "NO SUCH TRANSACTION"
+                        print "PLEASE TRY AGAIN"
+                        filer.close()
+                        transsumm_choices()       
+                else:
+                    continue
+        except EOFError:
+            print "NO SUCH TRANSACTION"
+            print "PLEASE TRY AGAIN"
+            filer.close()
+            transsumm_choices()
+        print "REDIRECTING TO DASHBOARD"
+        print
+        dashboard()
+    if choice=='2':
+        a=transaction_pdf(raw_input("ENTER TRANSACTION ID:"))
+        if a=="successful":
+            transsumm_choices()
+        else:
+            print "INVALID TRANSACTION ID"
+            print "PLEASE TRY AGAIN:"
+            transsumm_choices()
+    elif choice=='3':
+        print "REDIRECTING TO DASHBOARD"
+        print
+        dashboard()
+    else:
+        print "WRONG INPUT ENTER AGAIN"
+        transsumm_choices()
+################################################### transaction detail to pdf converter
+        
+def transaction_pdf(tid):
+    a=""
+    email_title="TRANSACTION SUMMARY"
+    email_message=""
+    filer=open("d:\Transactions","rb")
+    try:
+        while True:
+            transaction=transaction_record()
+            transaction=pickle.load(filer)
+            x=transaction.get_transid()
+            if str(x)==str(tid):
+                y=transaction.get_userid()
+                if str(y)==str(userid_g):
+                    email_message+="TRANSACTION ID:"
+                    email_message+=transaction.get_transid()+'\n'+'\n'
+                    email_message+="BENEFICIARY ID:"
+                    email_message+=transaction.get_beneid()+'\n'+'\n'
+                    try:
+                        filer2=open("d:\Beneficiaries.dat","rb")
+                        try:
+                            while True:
+                                bene=beneficiary_class()
+                                bene=pickle.load(filer2)
+                                if str(bene.get_beneid())==str(transaction.get_beneid()):
+                                    email_message+="BENEFICIARY NAME:"
+                                    email_message+=(bene.get_benename()).upper()+'\n'+'\n'
+                                    email_message+="BENEFICIARY ACCOUNT NO.:"
+                                    email_message+=bene.get_accno()+'\n'+'\n'
+                                    email_message+="BENEFICIARY IFSC CODE NO.:"
+                                    email_message+=(bene.get_ifsc()).upper()+'\n'+'\n'
+                                else:
+                                    continue
+                        except EOFError:
+                            pass
+                    except:
+                        pass
+                    filer2.close()
+                    email_message+="AMOUNT TRANSACTED: INR "
+                    email_message+=str(int(transaction.get_amount())*-1)+'\n'+'\n'
+                    email_message+="DATE:"
+                    email_message+=transaction.get_date()+'\n'+'\n'
+                    email_message+="TIME:"
+                    email_message+=transaction.get_time()+'\n'+'\n'
+                    break
+                else:
+                    a="NO SUCH TRANSACTION"
+                    filer.close()
+                    return a
+                    break
+            else:
+                continue
+    except EOFError:
+        a="NO SUCH TRANSACTION 123"
+        filer.close()
+        return a
+    if a!="NO SUCH TRANSACTION":
+        n=tid
+        c=canvas.Canvas("d:\Trans"+str(n)+".pdf")
+        t=c.beginText()
+        t.setTextOrigin(50, 800)
+        t.setLeading(40)
+        t.setFont('Courier-Bold',20)
+        t.textLines("LUH NATIONAL BANK")
+        t.setFont('Courier-Oblique',13)
+        t.textLines("Corp. Reg. Office:  HAPUR")
+        t.setFont('Helvetica',10)
+        t.textLines("")
+        t.textLines("")
+        t.setFont('Courier-Bold',13)
+        t.textLines("")
+        t.textLines(email_title)
+        t.textLines("")
+        t.setFont('Helvetica',10)
+        text=str(email_message)
+        t.textLines(text)
+        c.drawText(t)
+        c.save()
+        email_attachment(searchrecord('email'),"TRANSACTION SUMMARY","","d:\Trans"+str(n)+".pdf")
+        print "TRANSACTION SUMMARY HAS BEEN SEND TO YOU REGISTERED EMAILID, YOU CAN DOWNLOAD IT FROM THERE"
+        print
+    else:
+        a="NO SUCH TRANSACTION"
+#################################################### statement maker
+def statement():
+    year=raw_input("ENTER YEAR(FORMAT:YYYY):")
+    while year<'2018' or (year.isdigit())==False or len(year)!=4:
+        year=raw_input("ENTER VALID YEAR RECORDS DOES'NT EXIST:")
+    month=raw_input("ENTER MONTH(FORMAT:MM):")
+    while month>'12' or month<'0' or (month.isdigit())==False or len(month)!=2:
+        month=raw_input("ENTER VALID MONTH RECORDS DOES'NT EXIST:")
+    initialdate=year+'-'+month+'-01'
+    lastdates={'01':'31','02':'29','03':'31','04':'30','05':'31','06':'30','07':'31','08':'31','09':'30','10':'31','11':'30','12':'31'}
+    finaldate=year+'-'+month+'-'+str(lastdates.get(month))
+    email_message=""
+    email_message+="ACCOUNT NO.:"
+    email_message+=searchrecord("account")
+    email_message+='\n'
+    email_message+="ACCOUNT HOLDER NAME:"
+    email_message+=(searchrecord("name")).upper()
+    email_message+='\n\n'
+    email_message+="STATEMENT TIME PERIOD:"
+    email_message+='\n'
+    email_message+="STARTING DATE:"
+    email_message+=initialdate
+    email_message+="    "*8
+    email_message+="ENDING DATE  :"
+    email_message+=finaldate
+    email_message2='\n'*3
+    email_message2+="|-------------------------|---------------------------|-------------|-------------------|---------------|"
+    email_message2+='\n'
+    email_message2+="|TRANSACTION ID| BENEFICIARY ID  |AMOUNT|      DATE       |     TIME    |"
+    email_message2+='\n'
+    email_message2+="|-------------------------|---------------------------|-------------|-------------------|---------------|"
+    email_message2+='\n'
+    try:
+        filer=open("d:\Transactions","rb")
+    except:
+        print "NO TRANSACTIONS YET"
+        print "REDIRECTING TO DASHBOARD"
+        print
+        dashboard()
+    openingbalance=int(searchrecord("bal"))
+    closingbalance=searchrecord("bal")
+    try:
+        while True:
+            transaction=transaction_record()
+            transaction=pickle.load(filer)
+            if str(transaction.get_userid())==str(userid_g):
+                if str(transaction.get_date())>str(initialdate) and str(transaction.get_date())<str(finaldate):
+                    openingbalance-=int(transaction.get_amount())
+                    email_message2=email_message2+'|'+str((' '*(15-len(transaction.get_transid()))))+str(transaction.get_transid())+str((' '*(15-len(transaction.get_transid()))))+str('|'+str((' '*(16-len(transaction.get_beneid()))))+transaction.get_beneid())+str((' '*(16-len(transaction.get_beneid()))))+'|'+str((' '*2*(8-len(transaction.get_amount())))+' ')+str(transaction.get_amount())+str('|'+'  '+transaction.get_date()+'  ')+str((' '*2*(10-len(transaction.get_date()))))+str('|'+transaction.get_time())+str((' '*2*(10-len(transaction.get_time()))))+str('|')
+                    email_message2+='\n'
+                else:
+                    continue
+            else:
+                continue
+    except EOFError:
+        pass
+    filer.close()
+    email_message2+="|-------------------------|---------------------------|-------------|-------------------|---------------|"
+    print "SENDING STATEMENT TO YOUR REGISTERED EMAILID"
+    try:
+        attachedfileno=open("D:\ATTACHMENTNO.dat","rb")
+        try:
+            while True:
+                nt=pickle.load(attachedfileno)
+        except EOFError:
+            n=nt+1
+            attachedfileno.close()
+            attachedfileno=open("D:\ATTACHMENTNO.dat","ab")
+            pickle.dump(n,attachedfileno)
+            attachedfileno.close()
+    except:
+        attachedfileno=open("D:\ATTACHMENTNO.dat","ab")
+        n=1
+        pickle.dump(n,attachedfileno)
+    c=canvas.Canvas("d:\stmt"+str(n)+".pdf")                        # pdf generation
+    t=c.beginText()
+    t.setTextOrigin(50, 800)
+    t.setLeading(40)
+    t.setFont('Courier-Bold',20)
+    t.textLines("LUH NATIONAL BANK")
+    t.setFont('Courier-Oblique',13)
+    t.textLines("Corp. Reg. Office:  HAPUR")
+    t.textLines("")
+    t.setFont('Courier-Bold',13)
+    t.textLines("STATEMENT")
+    t.textLines("")
+    t.setFont('Helvetica',10)
+    text=str(email_message)
+    t.textLines(text)
+    t.setFont('Helvetica-Oblique',10)
+    t.textLines("")
+    next_lines="Opening Balance = INR "+str(openingbalance)
+    t.textLines("")
+    t.textLines("")
+    t.textLines(next_lines)
+    t.setFont('Helvetica',10)
+    text=str(email_message2)
+    t.textLines(text)
+    t.setFont('Helvetica-Oblique',10)
+    t.textLines("")
+    next_lines="Closing Balance = INR "+str(closingbalance)
+    t.textLines(next_lines)
+    c.drawText(t)
+    c.save()
+    email_attachment(searchrecord('email'),"STATEMENT","The statement asked through net banking","d:\stmt"+str(n)+".pdf")
+    print "STATEMENT HAS BEEN SEND TO YOU REGISTERED EMAILID, YOU CAN DOWNLOAD IT FROM THERE"
+    print "REDIRECTING TO DASHBOARD"
+    print
+    dashboard()
+############################################## transaction section ###################################
+    
+def transid_ge():
+    transid_file=open("d:\Tranid.dat","ab+")
+    c=1
+    while c>0:
+        code=random.randint(100000,999999)
+        try:
+            while True:
+                present_id=pickle.load(transid_file)
+                if present_id!=code:
+                    continue
+                else:
+                    break
+        except EOFError:
+            pickle.dump(str(code),transid_file)
+            transid_file.close()
+            c-=5
+    return code 
+def transaction():
+    filer=open("d:\Transactions","ab")
+    tid=transid_ge()
+    uid=userid_g
+    print "BENEFICIARIES LINKED TO YOUR ACCOUNT ARE:"
+    beneficiaries_print()
+    beneid=raw_input("ENTER BENEFICIARY ID FROM ABOVE:")
+    amount=input("ENTER AMOUNT:")
+    date=currentdate
+    time=currenttime
+    transpsswd=searchrecord('trans')
+    otp=random.randint(10000,99999)
+    transpsswd_i=raw_input("ENTER TRANSACTION PASSWORD:")
+    while transpsswd_i!=transpsswd:
+        print "WRONG PASSWORD."
+        transpsswd_i=raw_input("ENTER TRANSACTION PASSWORD OR IF DO NOT REMEMBER ENTER 'F':")
+        if transpsswd_i==transpsswd:
+            continue
+        elif (transpsswd_i.lower())=='f':
+            trans_forget()
+    email(searchrecord('email'),'REQUEST FOR TRANSACTION OTP','OTP for transaction is:\t\t'+str(otp))
+    print "AN OTP HAS BEEN SEND TO YOUR REGISTERED EMAILID"
+    otp_i=raw_input("ENTER THE RECIEVED OTP:")
+    if otp_i==str(otp):
+        ft=open("d:\TEMP.dat",'ab')
+        f=open("d:\ACCOUNTS.dat",'rb')
+        k=user()
+        try:
+            while True:
+                k=pickle.load(f)
+                if (k.get_userid())!=userid_g: 
+                    pickle.dump(k,ft)
+                else:
+                    edit=user(k.get_name(),k.get_accountno(),k.get_phoneno(),k.get_emailid(),k.get_address(),k.get_panno(),k.get_aadharno(),k.get_userid(),k.get_corpid(),k.get_logpsswd(),k.get_transpsswd(),int(searchrecord('bal'))-amount)
+                    pickle.dump(edit,ft)
+        except EOFError:
+            f.close()
+            ft.close()
+            os.remove("d:\ACCOUNTS.dat")
+            os.rename("d:\TEMP.dat","d:\ACCOUNTS.dat")
+        trans=transaction_record(str(tid),uid,beneid,str(-1*amount),date,time)
+        pickle.dump(trans,filer)
+        print "TRANSACTION SUCCESSFULL"
+        print "UPDATED BALANCE:",searchrecord("balan")
+        trid=tid
+        filer.close()
+        a=transaction_pdf(trid)
+        print a
+        filer.close()
+        print "REDIRECTING TO DASHBOARD"
+        print
+        dashboard()
+    else:
+        print "WRONG OTP"
+        print "TRANSACTION FAILED"
+        print "FOLLOW AGAIN"
+        filer.close()
+        transaction()
+
+############################# beneficiary #########################################
+        
+class beneficiary_class:
+    def __init__(self,userid='',beneid='',benename='',nickname='',accno='',ifsc='',phoneno='',status=''):
+        self.userid=userid
+        self.beneid=beneid
+        self.benename=benename
+        self.nickname=nickname
+        self.accno=accno
+        self.ifsc=ifsc
+        self.phoneno=phoneno
+        self.status=status
+    def get_userid(self):
+        return self.userid
+    def get_beneid(self):
+        return self.beneid
+    def get_benename(self):
+        return self.benename
+    def get_nickname(self):
+        return self.nickname
+    def get_accno(self):
+        return self.accno
+    def get_ifsc(self):
+        return self.ifsc
+    def get_phoneno(self):
+        return self.phoneno
+    def get_status(self):
+        return self.status
+def beneficiaries():
+    a=raw_input("""
+ENTER 1 FOR ADDING A BENEFICIARY                        ENTER 2 TO REMOVE A BENEFICIARY
+ENTER 3 TO GO BACK TO DASHBOARD:
+""")
+    if a=="1":
+        beneficiaries_add()
+    elif a=="2":
+        beneficiaries_remove()
+    elif a=="3":
+        dashboard()
+    else:
+        print "YOU HAVE GIVEN WRONG INPUT"
+        print "PLEASE TRY AGAIN:"
+        beneficiaries()
+def beneid_ge():
+    beneficiaryid_file=open("d:\Beneid.dat",'ab+')
+    c=1
+    while c>0:
+        code=random.randint(100000,999999)
+        try:
+            while True:
+                present_id=pickle.load(beneficiaryid_file)
+                if present_id!=code:
+                    continue
+                else:
+                    break
+        except EOFError:
+            pickle.dump(str(code),beneficiaryid_file)
+            beneficiaryid_file.close()
+            c-=5
+    return code
+def beneficiaries_add():
+    a=str(userid_g)
+    bid=beneid_ge()
+    b=str(bid)
+    c=raw_input("ENTER BENEFICIARY NAME")
+    while (c.isalpha())==False:
+        c=raw_input("ENTER VALID BENEFICIARY NAME:")
+    d=raw_input("ENTER BENEFICIARY NICKNAME")
+    while (d.isalpha())==False:
+        d=raw_input("ENTER VALID BENEFICIARY NICKNAME:")
+    e=raw_input("ENTER BENEFICIARY ACCOUNT NUMBER")
+    while (e.isdigit())==False or len(e)!=14:
+        e=raw_input("ENTER VALID ACCOUNT NUMBER:")
+    f=raw_input("ENTER IFSC ")
+    g=raw_input("ENTER PHONE NUMBER")
+    while (g.isdigit())==False or len(g)!=10:
+        g=raw_input("ENTER VALID PHONE NUMBER:")
+    if 'luh' in f.lower():
+        h="y"
+    else:
+        h="n"
+    beneficiary=beneficiary_class(a,b,c,d,e,f,g,h)
+    filer=open("d:\Beneficiaries.dat","ab")
+    pickle.dump(beneficiary,filer)
+    print "BENEFICIARY ADDED SUCCESSFULLY"
+    print "UPDATED LIST OF BENEFICIARIES IS:"
+    filer.close()
+    beneficiaries_print()
+    beneficiaries()
+def beneficiaries_print():
+    global data
+    data=[]
+    data.append(["   BENEID    ","     BENENAME     ","   NICKNAME   ","     ACCOUNT NO.     ","     IFSC     "])
+    try:
+        filer=open("d:\Beneficiaries.dat","rb")
+        try:
+            while True:
+                bene=beneficiary_class()
+                bene=pickle.load(filer)
+                if str(bene.get_userid())==str(userid_g):
+                    data_sub=[bene.get_beneid(),bene.get_benename(),bene.get_nickname(),bene.get_accno(),bene.get_ifsc()]
+                    data.append(data_sub)
+                else:
+                    continue
+        except EOFError:
+            pass
+        filer.close()
+        PRINTER()
+    except:
+        data=[]
+        print "NO BENEFICIARIES LINKED TO YOUR ACCOUNT. ADD A BENEFICIARY FIRST"
+        print "REDIRECTING TO BENEFICIARY MANAGER"
+        beneficiaries()
+def beneficiaries_remove():
+    beneid_del=raw_input("ENTER THE BENEFICARY ID YOU WANT TO DELETE:")
+    try:
+        filer=open("d:\Beneid.dat",'rb+')
+    except:
+        print "NO BENEFICIARIES YET."
+        print "REDIRECTING TO DASHBOARD"
+        print
+        dashboard()
+    try:
+        while True:
+            beneid_temp=pickle.load(filer)
+            if str(beneid_temp)==str(beneid_del):
+                filer.close()
+                ft=open("d:\TEMP.dat",'ab')
+                f=open("d:\Beneid.dat",'rb')
+                try:
+                    while True:
+                        k=pickle.load(f)
+                        if k!=beneid_temp:
+                            pickle.dump(k,ft)
+                        else:
+                            continue
+                except EOFError:
+                    f.close()
+                    ft.close()
+                    os.remove("d:\Beneid.dat")
+                    os.rename("d:\TEMP.dat","d:\Beneid.dat")
+                    print"YOUR BENEFICIARY HAS BEEN REMOVED SUCCESSFULLY"
+                ft=open("d:\TEMP.dat",'ab')
+                f=open("d:\Beneficiaries.dat",'rb')
+                try:
+                    while True:
+                        k=beneficiary_class()
+                        k=pickle.load(f)
+                        if str(k.get_beneid())!=str(beneid_temp):
+                            pickle.dump(k,ft)
+                        else:
+                            continue
+                except EOFError:
+                    f.close()
+                    ft.close()
+                    os.remove("d:\Beneficiaries.dat")
+                    os.rename("d:\TEMP.dat","d:\Beneficiaries.dat")
+                break
+            else:
+                continue
+    except EOFError:
+        print "THE BENEFICIARY ID DOES'NT EXIST"
+        print "PLEASE TRY AGAIN."
+        print "REDIRECTING TO DASHBOARD"
+        print
+        dashboard()
+    print "UPDATED BENEFICIARY LIST IS:"
+    beneficiaries_print()
+    beneficiaries()
+
+###################################################  setup section ##############################################
+    
+def setup():
+    a=raw_input("""
+ENTER
+
+1) FOR CHANGING LOGIN PASSWORD          2) FOR CHANGING TRANSACTION PASSWORD
+3) FOR GOING BACK TO DASHBOARD""")
+    if a=="1":
+        log_passchange()
+    elif a=="2":
+        trans_passchange()
+    elif a=="3":
+        dashboard()
+    else:
+        setup()
+def log_passchange():           # login password geneartor
+    old=searchrecord("login")
+    print "HERE YOU CAN CHANGE YOUR LOGIN PASSWORD EASILY"
+    print
+    old_i=raw_input("ENTER YOUR OLD  LOGIN PASSWORD HERE")
+    if old_i==old:
+        print "NEW PASSWORD MUST BE ATLEAST 6 CHARACTERS LONG INCLUDING DIGITS, SMALL AND CAPITAL LETTER AND SYMBOLS"
+        new=raw_input("ENTER THE NEW PASSWORD YOU WANT FOR YOUR ACCOUNT")
+        while True:
+            count_small=0
+            count_big=0
+            count_punctuation=0
+            count_number=0
+            for i in new:
+                if i in str(string.punctuation):
+                    count_punctuation+=1
+                elif i in str(string.ascii_lowercase):
+                    count_small+=1
+                elif i in str(string.ascii_uppercase):
+                    count_big+=1
+                elif i in str(string.digits):
+                    count_number+=1
+            if count_small==0 or count_big==0 or count_punctuation==0 or count_number==0 or len(new)<6:
+                print "YOUR PASSWORD DOES'NT MEED THE REQUIREMENTS"
+                new=raw_input("ENTER THE NEW PASSWORD AGAIN YOU WANT FOR YOUR ACCOUNT")
+            else:
+                break
+        con_new=raw_input("ENTER YOUR NEW PASSWORD AGAIN FOR CONFIRMATION")
+        print
+        if new==con_new:
+            ft=open("d:\TEMP.dat",'ab')
+            f=open("d:\ACCOUNTS.dat",'rb')
+            k=user()
+            try:
+                while True:
+                    k=pickle.load(f)
+                    if (k.get_userid())!=userid_g: 
+                        pickle.dump(k,ft)
+                    else:
+                        edit=user(k.get_name(),k.get_accountno(),k.get_phoneno(),k.get_emailid(),k.get_address(),k.get_panno(),k.get_aadharno(),k.get_userid(),k.get_corpid(),new,k.get_transpsswd(),k.get_balance())
+                        pickle.dump(edit,ft)
+            except EOFError:
+                f.close()
+                ft.close()
+                os.remove("d:\ACCOUNTS.dat")
+                os.rename("d:\TEMP.dat","d:\ACCOUNTS.dat")
+                print"YOUR LOG IN PASSWORD HAS BEEN CHANGED SUCCESSFULLY"
+                email(searchrecord('email'),"WARNING:  YOUR PASSWORD CHANGED","Password of your LUH National Bank account has been changed few minutes ago. If it was not done by you instantly visit your nearest LUH National Bank Branch AND IF THAT IS NOT POSSIBLE THEN YOU CAN CONTACT US AT luhnb@protonmail.com")
+                print "REDIRECTING TO DASHBOARD"
+                print
+                dashboard()
+        else:
+            print "YOU HAVE GIVEN DIFFERENT PASSWRODS IN BOTH INPUTS, PLEASE GIVE SAME PASSWORD IN BOTH COLUMN"
+            log_passchange() 
+    else:
+        print
+        print "YOU ARE GIVING WRONG PASSWORD,PLEASE PROVIDE US CORRECT PASSWORD OTHERWISE YOU CAN RESET YOUR PASSWORD BY OTHER MEANS BY GOING IN FORGOTTEN PASSWORD SECTION"
+        print
+        log_passchange_mismatch()
+def log_passchange_mismatch():        
+    a=raw_input("ENTER 1 IF YOU REMEMBER YOUR OLD PASSWORD AND WANT TO TRY AGAIN OR ENTER 2 IF YOU DONT REMEMBER YOUR OLD PASSWORD AND WANT TO RESET IT THROUGH OTHER MEANS i.e., BY GETTING OTP AT YOUR REGISTERED PHONE NO. AND ANSWERING YOUR SECURITY QUESTION")
+    if a=='1':
+        log_passchange()
+    elif a=='2':    
+        log_forget()
+        print "REDIRECTING TO DASHBOARD"
+        print
+        dashboard()
+    else:
+        print "WRONG INPUT, PLEASE TRY AGAIN:"
+        log_passchange_mismatch()
+def trans_passchange():             # transaction password changer
+    old=searchrecord("trans")
+    print "HERE YOU CAN CHANGE YOUR TRANSACTION PASSWORD EASILY"
+    print
+    old_i=raw_input("ENTER YOUR OLD TRANSACTION PASSWORD HERE")
+    if old_i==old:
+        print "NEW PASSWORD MUST BE ATLEAST 6 CHARACTERS LONG WITH DIGIT, SMALL AND CAPITAL LETTER"
+        new=raw_input("ENTER THE NEW PASSWORD YOU WANT FOR YOUR ACCOUNT")
+        while True:
+            count_small=0
+            count_big=0
+            count_punctuation=0
+            count_number=0
+            for i in new:
+                if i in str(string.punctuation):
+                    count_punctuation+=1
+                elif i in str(string.ascii_lowercase):
+                    count_small+=1
+                elif i in str(string.ascii_uppercase):
+                    count_big+=1
+                elif i in str(string.digits):
+                    count_number+=1
+            if count_small==0 or count_big==0 or count_punctuation==0 or count_number==0 or len(new)<6:
+                print "YOUR PASSWORD DOES'NT MEED THE REQUIREMENTS"
+                new=raw_input("ENTER THE NEW PASSWORD AGAIN YOU WANT FOR YOUR ACCOUNT")
+            else:
+                break
+        con_new=raw_input("ENTER YOUR NEW PASSWORD AGAIN FOR CONFIRMATION")
+        print
+        if new==con_new:
+            ft=open("d:\TEMP.dat",'ab')
+            f=open("d:\ACCOUNTS.dat",'rb')
+            k=user()
+            try:
+                while True:
+                    k=pickle.load(f)
+                    if (k.get_userid())!=userid_g:
+                        pickle.dump(k,ft)
+                    else:
+                        edit=user(k.get_name(),k.get_accountno(),k.get_phoneno(),k.get_emailid(),k.get_address(),k.get_panno(),k.get_aadharno(),k.get_userid(),k.get_corpid(),k.get_logpsswd(),new,k.get_balance())
+                        pickle.dump(edit,ft)
+            except EOFError:
+                f.close()
+                ft.close()
+                os.remove("d:\ACCOUNTS.dat")
+                os.rename("d:\TEMP.dat","d:\ACCOUNTS.dat")
+                print"YOUR TRANSACTION PASSWORD HAS BEEN CHANGED SUCCESSFULLY"
+                email(searchrecord('email'),"WARNING:  YOUR PASSWORD CHANGED","Password of your LUH National Bank account has been changed few minutes ago. If it was not done by you instantly visit your nearest LUH National Bank Branch.")
+                print "REDIRECTING TO DASHBOARD"
+                print
+                dashboard()
+        else:
+            print "YOU HAVE GIVEN DIFFERENT PASSWRODS IN BOTH INPUTS, PLEASE GIVE SAME PASSWORD IN BOTH COLUMN"
+            trans_passchange() 
+    else:
+        print
+        print "YOU ARE GIVING WRONG PASSWORD,PLEASE PROVIDE US CORRECT PASSWORD OTHERWISE YOU CAN RESET YOUR PASSWORD BY OTHER MEANS BY GOING IN FORGOTTEN PASSWORD SECTION"
+        print
+        trans_passchange_mismatch()
+def trans_passchange_mismatch():        
+    a=raw_input("ENTER 1 IF YOU REMEMBER YOUR OLD PASSWORD AND WANT TO TRY AGAIN OR ENTER 2 IF YOU DONT REMEMBER YOUR OLD PASSWORD AND WANT TO RESET IT THROUGH OTHER MEANS i.e., BY GETTING OTP AT YOUR REGISTERED PHONE NO. AND ANSWERING YOUR SECURITY QUESTION")
+    if a=='1':
+        trans_passchange()
+    elif a=='2':    
+        trans_forget()
+        print "REDIRECTING TO DASHBOARD"
+        print
+        dashboard()
+    else:
+        print "WRONG INPUT, PLEASE TRY AGAIN:"
+        trans_passchange_mismatch()        
+def log_forget():
+    print "DON'T WORRY, YOU CAN RESET YOUR LOGIN PASSWORD EASILY"
+    otpcheck()
+def otpcheck():
+    s=random.randint(100000,999999)
+    email(searchrecord("email"),"REQUEST FOR OTP","OTP FOR RESETTING PASSWORD IS: \n"+str(s))
+    print " AN OTP IS SENDED TO YOUR REGISTERED EMAIL ID"
+    t=input("PLEASE ENTER THAT OTP HERE")
+    if s==t:
+        login_forget_changer()
+    else:
+        print "YOU HAVE ENTER THE WRONG OTP ,PLEASE DO THE SAME AGAIN"
+        otpcheck()
+def login_forget_changer():             # login password forget
+    new=raw_input("ENTER THE NEW LOGIN PASSWORD YOU WANT FOR YOUR ACCOUNT")
+    while True:
+        count_small=0
+        count_big=0
+        count_punctuation=0
+        count_number=0
+        for i in new:
+            if i in str(string.punctuation):
+                count_punctuation+=1
+            elif i in str(string.ascii_lowercase):
+                count_small+=1
+            elif i in str(string.ascii_uppercase):
+                count_big+=1
+            elif i in str(string.digits):
+                count_number+=1
+        if count_small==0 or count_big==0 or count_punctuation==0 or count_number==0 or len(new)<6:
+            print "YOUR PASSWORD DOES'NT MEED THE REQUIREMENTS"
+            new=raw_input("ENTER THE NEW PASSWORD AGAIN YOU WANT FOR YOUR ACCOUNT")
+        else:
+            break
+    con_new=raw_input("ENTER YOUR NEW LOGIN PASSWORD AGAIN FOR CONFIRMATION")
+    if new==con_new:
+        ft=open("d:\TEMP.dat",'ab')
+        f=open("d:\ACCOUNTS.dat",'rb')
+        k=user()
+        try:
+            while True:
+                k=pickle.load(f)
+                if (k.get_userid())!=userid_g:
+                    pickle.dump(k,ft)
+                else:
+                    edit=user(k.get_name(),k.get_accountno(),k.get_phoneno(),k.get_emailid(),k.get_address(),k.get_panno(),k.get_aadharno(),k.get_userid(),k.get_corpid(),new,k.get_transpsswd(),k.get_balance())
+                    pickle.dump(edit,ft)
+        except EOFError:
+            f.close()
+            ft.close()
+            os.remove("d:\ACCOUNTS.dat")
+            os.rename("d:\TEMP.dat","d:\ACCOUNTS.dat")
+            print "YOUR LOGIN PASSWORD HAS BEEN CHANGED SUCCESFULLY"
+            email(searchrecord('email'),"WARNING:  YOUR PASSWORD CHANGED","Password of your LUH National Bank account has been changed few minutes ago. If it was not done by you instantly visit your nearest LUH National Bank Branch.")
+            dashboard_welcome()
+    else:
+        print "YOU HAVE GIVEN DIFFERENT PASSWRODS IN BOTH INPUTS, PLEASE GIVE SAME PASSWORD IN BOTH COLUMN"
+        login_forget_changer()
+def trans_forget():                     # transaction password forget
+    print "DON'T WORRY, YOU CAN RESET YOUR TRANSSACTION PASSWORD EASILY"
+    transotpcheck()
+def transotpcheck():
+    s=random.randint(100000,999999)
+    email(searchrecord("email"),"REQUEST FOR OTP","OTP FOR RESETTING PASSWORD IS: \n"+str(s))
+    print " AN OTP IS SENDED TO YOUR REGISTERED EMAIL ID"
+    t=input("PLEASE ENTER THAT OTP HERE")
+    if s==t:
+        trans_forget_changer()
+    else:
+        print "YOU HAVE ENTER THE WRONG OTP ,PLEASE DO THE SAME AGAIN"
+        transotpcheck()
+def trans_forget_changer():
+    new=raw_input("ENTER THE NEW TRANSACTION PASSWORD YOU WANT FOR YOUR ACCOUNT")
+    while True:
+        count_small=0
+        count_big=0
+        count_punctuation=0
+        count_number=0
+        for i in new:
+            if i in str(string.punctuation):
+                count_punctuation+=1
+            elif i in str(string.ascii_lowercase):
+                count_small+=1
+            elif i in str(string.ascii_uppercase):
+                count_big+=1
+            elif i in str(string.digits):
+                count_number+=1
+        if count_small==0 or count_big==0 or count_punctuation==0 or count_number==0 or len(new)<6:
+            print "YOUR PASSWORD DOES'NT MEED THE REQUIREMENTS"
+            new=raw_input("ENTER THE NEW PASSWORD AGAIN YOU WANT FOR YOUR ACCOUNT")
+        else:
+            break
+    con_new=raw_input("ENTER YOUR NEW TRANSACTION PASSWORD AGAIN FOR CONFIRMATION")
+    if new==con_new:
+        ft=open("d:\TEMP.dat",'ab')
+        f=open("d:\ACCOUNTS.dat",'rb')
+        k=user()
+        try:
+            while True:
+                k=pickle.load(f)
+                if (k.get_userid())!=userid_g:
+                    pickle.dump(k,ft)
+                else:
+                    edit=user(k.get_name(),k.get_accountno(),k.get_phoneno(),k.get_emailid(),k.get_address(),k.get_panno(),k.get_aadharno(),k.get_userid(),k.get_corpid(),k.get_logpsswd(),str(new),k.get_balance())
+                    pickle.dump(edit,ft)
+        except EOFError:
+            f.close()
+            ft.close()
+            os.remove("d:\ACCOUNTS.dat")
+            os.rename("d:\TEMP.dat","d:\ACCOUNTS.dat")
+            print "YOUR TRANSSACTION PASSWORD HAS BEEN CHANGED SUCCESFULLY"
+            email(searchrecord('email'),"WARNING:  YOUR PASSWORD CHANGED","Password of your LUH National Bank account has been changed few minutes ago. If it was not done by you instantly visit your nearest LUH National Bank Branch.")
+            print "REDIRECTING TO DASHBOARD"
+            print
+            dashboard_welcome()
+    else:
+        print "YOU HAVE GIVEN DIFFERENT PASSWRODS IN BOTH INPUTS, PLEASE GIVE SAME PASSWORD IN BOTH COLUMN"
+        trans_forget_changer()
+welcome()
